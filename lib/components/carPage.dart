@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:auto_app/components/carousel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -62,7 +63,7 @@ class _CarPageState extends State<CarPage> {
                       margin: EdgeInsets.only(top: 50),
                       width: MediaQuery.of(context).size.width * 0.95,
                       height: 300,
-                      child: Text("Place for image"),
+                      child: CarouselWithIndicatorDemo(),
                       decoration: BoxDecoration(
                         color: Colors.black,
                       ),

@@ -1,34 +1,13 @@
-import 'dart:convert';
-
-import 'package:auto_app/components/carListPage.dart';
 import 'package:auto_app/utils/urlMaker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-Future<String> _makeUrl(Map<String, dynamic> payload) async {
-  var url = Uri.parse("https://constantflame.pythonanywhere.com/makePageUrl");
-  var body = json.encode(payload);
-  var res = await http.post(url, body: body, headers: headers);
-  if (res.statusCode == 200) {
-    Map<String, dynamic> jsonRes = json.decode(res.body);
-    return jsonRes["url"].toString();
-  } else {
-    return "";
-  }
+class NotiChars extends StatefulWidget {
+  _NotiChars createState() => _NotiChars();
 }
 
-Map<String, String> headers = {
-  'Content-type': 'application/json',
-  'Accept': 'application/json; charset=UTF-8',
-};
-
-class Search extends StatefulWidget {
-  _SearchState createState() => _SearchState();
-}
-
-class _SearchState extends State<Search> {
+class _NotiChars extends State<NotiChars> {
   final _formKey = GlobalKey<FormBuilderState>();
   @override
   Widget build(BuildContext context) {
@@ -406,7 +385,7 @@ class _SearchState extends State<Search> {
                     child: MaterialButton(
                       color: Theme.of(context).accentColor,
                       child: Text(
-                        "Найти!",
+                        "Сохранить",
                         style: TextStyle(color: Colors.white),
                       ),
                       onPressed: () async {
@@ -416,11 +395,9 @@ class _SearchState extends State<Search> {
                           String url = makeUrl(_formKey.currentState?.value
                               as Map<String, dynamic>);
                           print(url);
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CarListPage(url: url),
-                              ));
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          prefs.setString("noturl", url);
                         } else {
                           print("validation failed");
                         }

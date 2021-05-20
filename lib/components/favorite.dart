@@ -1,16 +1,36 @@
+import 'package:auto_app/utils/FavModel.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'carCard.dart';
 
-List<String> cardUrls = [
-  "https://auto.ru/cars/used/sale/mercedes/gle_klasse_coupe/1103168273-6ac4b173/",
-  "https://auto.ru/cars/used/sale/toyota/tundra/1101441177-02a09f7a/",
-];
+Future<List<String>> buildList() async {
+  var docsPath = await getApplicationDocumentsDirectory();
+  var db = await openDatabase(docsPath.path + 'autofavs.db', version: 1,
+      onCreate: (Database db, int version) async {
+    await db.execute("CREATE TABLE Favs ("
+        "url TEXT"
+        ")");
+  });
+  var res = await db.query("Favs");
+  List<FavModel> list =
+      res.isNotEmpty ? res.map((c) => FavModel.fromMap(c)).toList() : [];
+  List<String> urls = [];
+  for (FavModel ms in list) {
+    urls.add(ms.url);
+  }
+  return urls;
+}
 
 class Favorite extends StatelessWidget {
+  static const String routeName = '/favs';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Избранные'),
+      ),
       body: FavListScreen(),
     );
   }
@@ -19,22 +39,29 @@ class Favorite extends StatelessWidget {
 class FavListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(5),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: ListView.builder(
-              itemCount: cardUrls.length,
-              itemBuilder: (BuildContext context, int index) {
-                return CarCard(cardUrl: cardUrls[index]);
-              },
+    return FutureBuilder<List<String>>(
+        future: buildList(),
+        builder: (BuildContext context, AsyncSnapshot<List<String>> snap) {
+          return Container(
+            margin: EdgeInsets.all(5),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: ListView.builder(
+                    //addAutomaticKeepAlives: true,
+                    itemCount: snap.data?.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return CarCard(
+                        cardUrl: snap.data?[index] as String,
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
+          );
+        });
   }
 }

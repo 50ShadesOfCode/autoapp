@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:auto_app/components/carousel.dart';
+import 'package:auto_app/components/charsPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -11,7 +12,7 @@ Map<String, String> headers = {
 };
 
 Future<Map<String, dynamic>> getCarParameters(carUrl) async {
-  var url = Uri.parse("http://localhost:5000/getCardByUrl");
+  var url = Uri.parse("https://autoparseru.herokuapp.com/getCarByUrl");
   var body = json.encode({"url": carUrl});
   var res = await http.post(url, body: body, headers: headers);
   if (res.statusCode == 200) {
@@ -53,6 +54,21 @@ class _CarPageState extends State<CarPage> {
             ),
           );
         }
+        if (snap.connectionState == ConnectionState.none || !snap.hasData) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [Text("No internet connection!!")],
+              ),
+            ),
+          );
+        }
+        Map<String, dynamic> cChars = snap.data as Map<String, dynamic>;
+        List<String> urls = [];
+        for (int i = 0; i < cChars["images_urls"].length; i++) {
+          urls.add(cChars["images_urls"][i]);
+        }
         return Scaffold(
           body: SingleChildScrollView(
             child: Container(
@@ -62,8 +78,10 @@ class _CarPageState extends State<CarPage> {
                     Container(
                       margin: EdgeInsets.only(top: 50),
                       width: MediaQuery.of(context).size.width * 0.95,
-                      height: 300,
-                      child: CarouselWithIndicatorDemo(),
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: CarouselWithIndicator(
+                        imageUrls: urls,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black,
                       ),
@@ -96,7 +114,7 @@ class _CarPageState extends State<CarPage> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["year"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -110,14 +128,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Пробег",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["kmage"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -131,14 +149,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Кузов",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["body"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -152,14 +170,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Цвет",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["color"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -173,14 +191,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Двигатель",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["engine"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -194,14 +212,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Коробка передач",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["transmission"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -215,14 +233,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Привод",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["drive"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -236,14 +254,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Руль",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["wheel"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -257,14 +275,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Состояние",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["state"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -278,14 +296,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Владельцы",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["owners"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -299,14 +317,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "ПТС",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
+                                    cChars["pts"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -320,77 +338,14 @@ class _CarPageState extends State<CarPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Год выпуска",
+                                    "Таможня",
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                   flex: 50,
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "2020",
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  flex: 50,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            margin: EdgeInsets.symmetric(vertical: 3),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    "Год выпуска",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                  flex: 50,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "2020",
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  flex: 50,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            margin: EdgeInsets.symmetric(vertical: 3),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    "Год выпуска",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                  flex: 50,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "2020",
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  flex: 50,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            margin: EdgeInsets.symmetric(vertical: 3),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    "Год выпуска",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                  flex: 50,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "2020",
+                                    cChars["customs"].toString(),
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   flex: 50,
@@ -415,10 +370,23 @@ class _CarPageState extends State<CarPage> {
                     Container(
                       margin: EdgeInsets.all(10),
                       child: Text(
-                        "Random commentjbksakjfbasjfbaskjbfaskjbfka jsbfbaskjfbaskfbkjasbfkjasb ajkbsfbas fjasjk bfakjsb fkjaskj kaj bkfjajkbfksaj b",
+                        cChars["desc"].toString(),
                         textAlign: TextAlign.start,
                       ),
                     ),
+                    Container(
+                      child: TextButton(
+                        onPressed: () => {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    CharsPage(url: cChars["chars"].toString())),
+                          )
+                        },
+                        child: Text("Характеристики автомобиля"),
+                      ),
+                    )
                   ],
                 ),
               ),

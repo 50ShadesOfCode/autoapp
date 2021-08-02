@@ -1,12 +1,16 @@
+import 'dart:convert';
+
 import 'package:auto_app/utils/urlMaker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class NotiChars extends StatefulWidget {
   _NotiChars createState() => _NotiChars();
 }
 
+//Характеристики по которым отправляются уведомления. Код по большей части идентичен с кодом поиска, если только пару моментов.
 class _NotiChars extends State<NotiChars> {
   final _formKey = GlobalKey<FormBuilderState>();
   @override
@@ -382,6 +386,7 @@ class _NotiChars extends State<NotiChars> {
               Row(
                 children: <Widget>[
                   Expanded(
+                    //при нажатии создает новую ссылку по заданным параметрам
                     child: MaterialButton(
                       color: Theme.of(context).accentColor,
                       child: Text(
@@ -392,12 +397,23 @@ class _NotiChars extends State<NotiChars> {
                         _formKey.currentState?.save();
                         if (_formKey.currentState?.validate() == true) {
                           print(_formKey.currentState?.value);
+                          //создает
                           String url = makeUrl(_formKey.currentState?.value
                               as Map<String, dynamic>);
                           print(url);
                           SharedPreferences prefs =
                               await SharedPreferences.getInstance();
+                          //сохраняет в SharedPreferences
                           prefs.setString("noturl", url);
+                          //выполняет запрос на сервер для получения числа автомобилей
+                          var res = await http.post(
+                            Uri.parse(
+                                'https://autoparseru.herokuapp.com/getNotUpdate'),
+                            body: json.encode({"url": url}),
+                            headers: headers,
+                          );
+                          //сохраняет число автомобилей в SharedPreferences
+                          prefs.setString("carups", res.body);
                         } else {
                           print("validation failed");
                         }
@@ -424,3 +440,9 @@ class _NotiChars extends State<NotiChars> {
         ));
   }
 }
+
+//Заголовки, есть в каждом файле с запросами
+Map<String, String> headers = {
+  'Content-type': 'application/json',
+  'Accept': 'application/json; charset=UTF-8',
+};

@@ -11,6 +11,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'carouselPage.dart';
+
 class CarCard extends StatefulWidget {
   final String cardUrl;
   CarCard({required String cardUrl}) : this.cardUrl = cardUrl;
@@ -25,7 +27,7 @@ Map<String, String> headers = {
 
 class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
   @override
-  // TODO: implement wantKeepAlive
+  //нужно для того, чтобы карточки не сбрасывались при обновлении страницы
   bool get wantKeepAlive => true;
 
   _CarCardState(this.cardUrl);
@@ -38,6 +40,7 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
         builder: (BuildContext context,
             AsyncSnapshot<Map<String, dynamic>> snapshot) {
           final provider = Provider.of<ThemeProvider>(context);
+          //карточка для показа, пока выполняется запрос на сервер
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(
                 decoration: BoxDecoration(
@@ -61,9 +64,10 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                 height: MediaQuery.of(context).size.height * 0.15,
                 margin: EdgeInsets.symmetric(vertical: 5),
                 child: Center(
-                  child: Text("Waiting response!!"),
+                  child: CircularProgressIndicator(),
                 ));
           }
+          //карточка, которая показывается в случае того, если данные с сервера не получены
           if (snapshot.data == null) {
             return Container(
                 decoration: BoxDecoration(
@@ -90,9 +94,16 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                   child: Text("Check your Internet connection!!"),
                 ));
           }
+          //если данные получены, то есть два случая которые надо рассматривать отдельно. Если ссылка на новый автомобиль или подержаный.
           Map<String, dynamic> cChars = snapshot.data as Map<String, dynamic>;
+          List<String> urls = [];
+          for (int i = 0; i < cChars["images_urls"].length; i++) {
+            urls.add("http://" + cChars["images_urls"][i]);
+          }
+          //если на подержаный, то возвращаем карточку для подержаного
           if (!this.cardUrl.contains("/new/")) {
             return Container(
+              //оформление карточки
               decoration: BoxDecoration(
                 color: (provider.isDarkMode ? Colors.black : Colors.white),
                 boxShadow: [
@@ -114,6 +125,7 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
               height: MediaQuery.of(context).size.height * 0.15,
               margin: EdgeInsets.symmetric(vertical: 5),
               child: InkWell(
+                //при нажатии на карточку будет открываться страница автомобиля с заданной ссылкой
                 onTap: () => {
                   Navigator.push(
                       context,
@@ -125,7 +137,14 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                   Expanded(
                     flex: 25,
                     child: InkWell(
-                      onTap: () => {print("Open images")},
+                      onTap: () => {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CarouselPage(imageUrls: urls),
+                          ),
+                        )
+                      },
                       child: Container(
                         child: Image(
                           image: NetworkImage(
@@ -134,21 +153,22 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                       ),
                     ),
                   ),
+                  //далее колонки для показа информации о автомобиле
                   Expanded(
                     flex: 30,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
+                          child: Text(cChars["name"].toString()),
+                          margin: EdgeInsets.symmetric(vertical: 3),
+                        ),
+                        Container(
                           child: Text(cChars["kmage"].toString()),
                           margin: EdgeInsets.symmetric(vertical: 3),
                         ),
                         Container(
                           child: Text(cChars["engine"].toString()),
-                          margin: EdgeInsets.symmetric(vertical: 3),
-                        ),
-                        Container(
-                          child: Text(cChars["transmission"].toString()),
                           margin: EdgeInsets.symmetric(vertical: 3),
                         ),
                       ],
@@ -160,14 +180,14 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                            child: Text(cChars["color"].toString()),
+                            child: Text(cChars["price"].toString()),
                             margin: EdgeInsets.symmetric(vertical: 3)),
                         Container(
-                          child: Text(cChars["drive"].toString()),
+                          child: Text(cChars["color"].toString()),
                           margin: EdgeInsets.symmetric(vertical: 3),
                         ),
                         Container(
-                          child: Text(cChars["body"].toString()),
+                          child: Text(cChars["drive"].toString()),
                           margin: EdgeInsets.symmetric(vertical: 3),
                         ),
                       ],
@@ -175,6 +195,7 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                   ),
                   Expanded(
                     flex: 8,
+                    //кнопка избранное, при нажатии открывает бд и в зависимости от того активна кнопка или нет добавляет ил удаляет данный автомобиль из бд
                     child: StarButton(
                       iconSize: 45,
                       valueChanged: (value) async {
@@ -217,6 +238,7 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
               ),
             );
           } else {
+            //здесь тоже самое, что и для подержаных автомобилей, только ищменены отображаемые характеритики, чтобы сервер и приложение работали корректно.
             return Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -250,7 +272,14 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                   Expanded(
                     flex: 25,
                     child: InkWell(
-                      onTap: () => {print("Open images")},
+                      onTap: () => {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CarouselPage(imageUrls: urls),
+                          ),
+                        )
+                      },
                       child: Container(
                         child: Image(
                           image: NetworkImage(
@@ -265,15 +294,15 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          child: Text(cChars["complectation"].toString()),
+                          child: Text(cChars["name"].toString()),
                           margin: EdgeInsets.symmetric(vertical: 3),
+                        ),
+                        Container(
+                          child: Text(cChars["complectation"].toString()),
+                          margin: EdgeInsets.only(top: 3, bottom: 3, left: 2),
                         ),
                         Container(
                           child: Text(cChars["engine"].toString()),
-                          margin: EdgeInsets.symmetric(vertical: 3),
-                        ),
-                        Container(
-                          child: Text(cChars["transmission"].toString()),
                           margin: EdgeInsets.symmetric(vertical: 3),
                         ),
                       ],
@@ -285,14 +314,14 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                            child: Text(cChars["color"].toString()),
+                            child: Text(cChars["price"].toString()),
                             margin: EdgeInsets.symmetric(vertical: 3)),
                         Container(
-                          child: Text(cChars["drive"].toString()),
+                          child: Text(cChars["color"].toString()),
                           margin: EdgeInsets.symmetric(vertical: 3),
                         ),
                         Container(
-                          child: Text(cChars["body"].toString()),
+                          child: Text(cChars["drive"].toString()),
                           margin: EdgeInsets.symmetric(vertical: 3),
                         ),
                       ],
@@ -346,12 +375,17 @@ class _CarCardState extends State<CarCard> with AutomaticKeepAliveClientMixin {
   }
 }
 
+//получает параметры о автомобиле по заданной ссылке
 Future<Map<String, dynamic>> getCardParameters(carUrl) async {
   print(carUrl);
   var url = Uri.parse("https://autoparseru.herokuapp.com/getCardByUrl");
+  //тело запроса
   var body = json.encode({"url": carUrl});
+  //сам запрос
   var res = await http.post(url, body: body, headers: headers);
+  //проверка если запрос успешен
   if (res.statusCode == 200) {
+    //словарь json с ответом сервера
     Map<String, dynamic> jsonRes = json.decode(res.body);
     return jsonRes;
   } else {

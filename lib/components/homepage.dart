@@ -4,48 +4,29 @@ import 'package:auto_app/components/settings.dart';
 import 'package:auto_app/components/themeProvider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 
+//HomePage просто каркас приложения, в котором уже рендерятся все страницы. В себе содержит только нижнюю панель навигации.
 class HomePage extends StatefulWidget {
   @override
   HomePageState createState() => HomePageState();
 }
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-
 class HomePageState extends State<HomePage> {
+  //контроллер для отслеживания состояния нижней панели
   PersistentTabController _controller = PersistentTabController();
 
   @override
   void initState() {
     super.initState();
     _controller = PersistentTabController(initialIndex: 0);
-    void _requestPermissions() {
-      flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-      flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              MacOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     var provider = Provider.of<ThemeProvider>(context);
+    //сама панель с заданными параметрами и темой
     return PersistentTabView(
       context,
       controller: _controller,
@@ -62,6 +43,7 @@ class HomePageState extends State<HomePage> {
   }
 }
 
+//список экранов для нижней панели
 List<Widget> _buildScreens() {
   return [
     Settings(),
@@ -70,6 +52,7 @@ List<Widget> _buildScreens() {
   ];
 }
 
+//элементы панели навигации: настройки, поиск и избранное.
 List<PersistentBottomNavBarItem> _navbarsItems() {
   return [
     PersistentBottomNavBarItem(

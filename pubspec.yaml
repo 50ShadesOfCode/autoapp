@@ -26,7 +26,9 @@ dependencies:
   timezone: any
   flutter_native_timezone: any
   provider: any
-  path: any
+  url_launcher: any
+  flutter_email_sender: any
+  photo_view: any
 
 dev_dependencies:
   flutter_test:

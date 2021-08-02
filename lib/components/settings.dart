@@ -4,18 +4,22 @@ import 'package:auto_app/utils/notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 
 class Settings extends StatefulWidget {
   _SettingsState createState() => _SettingsState();
 }
 
 class _SettingsState extends State<Settings> {
+  //выбранная частота уведомлений
   int selectedRate = 0;
+  //контроллеры для полей с текстом
   final _textController = TextEditingController();
-
+  final _textControllerMail = TextEditingController();
   @override
   void dispose() {
     _textController.dispose();
+    _textControllerMail.dispose();
     super.dispose();
   }
 
@@ -28,21 +32,25 @@ class _SettingsState extends State<Settings> {
       body: Center(
         child: Column(
           children: [
+            //форма для введения имени пользователя
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 5),
+              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: Row(
                 children: [
-                  Expanded(
-                    flex: 75,
-                    child: TextField(
-                      decoration:
-                          InputDecoration(hintText: 'Введите имя пользователя'),
-                      controller: _textController,
+                  Container(
+                    child: Expanded(
+                      flex: 75,
+                      child: TextField(
+                        decoration: InputDecoration(
+                            hintText: 'Введите имя пользователя'),
+                        controller: _textController,
+                      ),
                     ),
                   ),
                   Expanded(
                       flex: 30,
                       child: ElevatedButton(
+                          //при нажатии сохраняем имя пользователя в SharedPreferences если что-то введено
                           onPressed: () async {
                             if (_textController.text == "") {
                               return;
@@ -57,7 +65,9 @@ class _SettingsState extends State<Settings> {
                 ],
               ),
             ),
+            //перевключение темы
             Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
               child: Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -68,10 +78,13 @@ class _SettingsState extends State<Settings> {
                 ),
               ),
             ),
+            //выпадающий список с частотами уведомлений
             Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
               child: DropdownButton<int>(
                   hint: Text("Выберите частоту уведомлений"),
                   value: selectedRate,
+                  //при выборе какого либо элемента сохраняет частоту в SharedPreferences и запускает уведомления с выбранной частотой
                   onChanged: (int? value) async {
                     setState(() {
                       selectedRate = value as int;
@@ -90,6 +103,7 @@ class _SettingsState extends State<Settings> {
                       scheduleDailyFourAMNotification();
                     }
                   },
+                  //список частот уведомлений
                   items: [
                     DropdownMenuItem<int>(
                       value: 0,
@@ -149,7 +163,9 @@ class _SettingsState extends State<Settings> {
                     )
                   ]),
             ),
+            //кнопка для перехода на страницу с параметрами уведомлений
             Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
               child: TextButton(
                 onPressed: () => {
                   Navigator.push(
@@ -159,6 +175,38 @@ class _SettingsState extends State<Settings> {
                 },
                 child: Text("Изменить параметры уведомлений"),
               ),
+            ),
+            //поле для ввода сообщения обратной связи. при нажатии на отправить открывается почта уже с введенной темой текстом и тд
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              child: Row(
+                children: [
+                  Container(
+                    child: Expanded(
+                      flex: 75,
+                      child: TextField(
+                        decoration: InputDecoration(hintText: 'Обратная связь'),
+                        controller: _textControllerMail,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                      flex: 30,
+                      child: ElevatedButton(
+                          onPressed: () async {
+                            if (_textControllerMail.text == "") {
+                              return;
+                            }
+                            final Email email = Email(
+                                body: _textControllerMail.text,
+                                subject: "Обратная связь в приложении",
+                                recipients: ['kostya9907@mail.ru'],
+                                isHTML: false);
+                            await FlutterEmailSender.send(email);
+                          },
+                          child: Text("Отправить")))
+                ],
+              ),
             )
           ],
         ),
@@ -167,12 +215,15 @@ class _SettingsState extends State<Settings> {
   }
 }
 
+//виджет с переключателем для темы
 class ChangeThemeButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Switch.adaptive(
+      //начальное значение
       value: themeProvider.isDarkMode,
+      //если белая, включаем темную, и наоборот
       onChanged: (value) {
         final provider = Provider.of<ThemeProvider>(context, listen: false);
         provider.toggleTheme(value);
@@ -181,4 +232,5 @@ class ChangeThemeButtonWidget extends StatelessWidget {
   }
 }
 
+//список со значениями частот. 0 - вообще нет, 1 - 45 минут, 2 - 1 час, 3 - ежедневно
 List<int> values = [0, 1, 2, 3];

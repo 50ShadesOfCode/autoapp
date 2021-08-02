@@ -12,20 +12,20 @@ Map<String, String> headers = {
   'Accept': 'application/json; charset=UTF-8',
 };
 
+//получает с сервера список ссылок на автомобили по ссылке с заданными параметрами
 Future<int> _getCarUrls(String purl) async {
   print(purl);
   var url = Uri.parse("https://autoparseru.herokuapp.com/getCarsByParams");
   var body = json.encode({"url": purl});
   var res = await http.post(url, body: body, headers: headers);
   if (res.statusCode == 200) {
+    //создаем список ссылок на картинки на основе массива в ответе сервера
     Map<String, dynamic> jsonRes = json.decode(res.body);
     for (int i = 0; i < jsonRes["urls"].length; i++) {
       cards.add(jsonRes["urls"][i].toString());
     }
-    print(200);
     return 200;
   }
-  print(404);
   return 404;
 }
 
@@ -41,47 +41,39 @@ class _CarListPageState extends State<CarListPage> {
   final String url;
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text('Результаты'),
-          ),
-          body: FutureBuilder(
-            future: _getCarUrls(this.url),
-            builder: (BuildContext context, AsyncSnapshot<int> snap) {
-              return Container(
-                margin: EdgeInsets.all(5),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      child: ListView.builder(
-                        addAutomaticKeepAlives: true,
-                        itemCount: cards.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return CarCard(
-                            cardUrl: cards[index],
-                          );
-                        },
-                      ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Результаты'),
+      ),
+      //FutureBuilder ждет пока выполнится функция, удобно для нашего случая когда у сервера большое время ответа.
+      body: FutureBuilder(
+        future: _getCarUrls(this.url),
+        builder: (BuildContext context, AsyncSnapshot<int> snap) {
+          return Container(
+            margin: EdgeInsets.all(5),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Scrollbar(
+                    child: ListView.builder(
+                      addAutomaticKeepAlives: true,
+                      itemCount: cards.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return CarCard(
+                          cardUrl: cards[index],
+                        );
+                      },
                     ),
-                  ],
+                  ),
                 ),
-              );
-            },
-          ),
-        ),
-        onWillPop: () async {
-          this.dispose();
-          print("killed");
-          return true;
-        });
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }

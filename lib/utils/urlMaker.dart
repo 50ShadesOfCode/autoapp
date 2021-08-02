@@ -1,3 +1,4 @@
+//эта функция из словаря создает ссылку на автомобили по заданным параметрам
 String makeUrl(Map<String, dynamic> data) {
   String url = "https://auto.ru/cars/";
   String mark = data["mark"]

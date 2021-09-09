@@ -1,4 +1,4 @@
-# auto_app
+# Auto App
 
 A new Flutter application.
 
